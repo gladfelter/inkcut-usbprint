@@ -1,0 +1,42 @@
+# -*- coding: utf-8 -*-
+"""
+Distributed under the terms of the GPL v3 License.
+
+The full license is in the file LICENSE, distributed with this software.
+"""
+import textwrap
+from inkcut.core.utils import load_icon
+from enaml.layout.api import hbox, align
+from enaml.qt.QtWidgets import QApplication
+from enaml.widgets.api import Container, Form, Label, ObjectCombo, PushButton
+
+
+enamldef UsbPrintSettingsView(Container):
+    attr model
+    padding = 0
+
+    Form:
+        Label:
+            text = QApplication.translate("usbprint", "Interface")
+        Container:
+            padding = 0
+            constraints = [
+                hbox(cb, pb),
+                align('v_center', cb, pb)
+            ]
+            ObjectCombo: cb:
+                items << model.paths
+                selected << (model.device_path if model.device_path in model.paths
+                             else (model.paths[0] if model.paths else ''))
+                selected ::
+                    if change['value']:
+                        model.device_path = change['value']
+                tool_tip = textwrap.dedent("""
+                USB print-class interfaces detected on this system. These are
+                devices Windows sees as printers even when no printer driver or
+                print queue is installed.
+                """).strip()
+            PushButton: pb:
+                text = QApplication.translate("usbprint", "Refresh")
+                icon = load_icon("arrow_refresh")
+                clicked :: model.refresh()

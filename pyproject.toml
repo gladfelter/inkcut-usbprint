@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "inkcut-usbprint"
+version = "1.0.0"
+description = "Inkcut transport for USB printer-class cutters with no driver and no print queue"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "GPL-3.0-or-later" }
+keywords = ["inkcut", "plotter", "vinyl cutter", "hpgl", "usbprint"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3",
+    "Topic :: Multimedia :: Graphics :: Graphics Conversion",
+]
+#: Inkcut is the host application, not a build dependency: the plugin is
+#: installed *into* an environment that already has it, exactly like any other
+#: Inkcut entry point package.
+dependencies = ["atom", "enaml"]
+
+[project.optional-dependencies]
+test = ["pytest", "pytest-asyncio"]
+
+[project.entry-points."inkcut.plugin"]
+usbprint = "inkcut_usbprint:manifest_factory"
+
+[tool.setuptools]
+packages = ["inkcut_usbprint"]
+
+[tool.setuptools.package-data]
+inkcut_usbprint = ["*.enaml"]

@@ -1,0 +1,73 @@
+# -*- coding: utf-8 -*-
+"""
+Distributed under the terms of the GPL v3 License.
+
+The full license is in the file LICENSE, distributed with this software.
+
+USBPRINT plugin manifest
+------------------------
+
+Registers two things with the ``inkcut.device`` plugin:
+
+* a transport on ``inkcut.device.transport``, so the device can be reached
+  without a printer queue, a driver, or a COM port; and
+* a device driver on ``inkcut.device.driver``, so the machine appears in the
+  Configure device list already restricted to that transport and to HPGL.
+
+Registering the driver is what keeps this plugin quiet: the Configure device
+dialog offers only the transports a driver names in ``connections`` (plus
+``disk``), so without a driver here the transport would be registered but
+invisible.
+"""
+from enaml.workbench.api import Extension
+from enaml.workbench.plugin_manifest import PluginManifest
+from inkcut.device.extensions import (
+    DeviceDriver, DeviceTransport, DEVICE_DRIVER_POINT, DEVICE_TRANSPORT_POINT)
+
+
+def transport_factory(driver, declaration, protocol):
+    from .plugin import UsbPrintTransport, UsbPrintConfig
+    config = UsbPrintConfig(**driver.get_connection_config('usbprint'))
+    return UsbPrintTransport(declaration=declaration, protocol=protocol,
+                             config=config)
+
+
+def config_view_factory():
+    import enaml
+    with enaml.imports():
+        from .settings import UsbPrintSettingsView
+    return UsbPrintSettingsView
+
+
+enamldef UsbPrintManifest(PluginManifest):
+    """ Registers the usbprint transport and the MakerCraft driver. """
+    id = 'inkcut_usbprint'
+
+    Extension:
+        id = 'transports'
+        point = DEVICE_TRANSPORT_POINT
+
+        DeviceTransport:
+            id = 'usbprint'
+            name = 'USB Print Interface'
+            factory = transport_factory
+            config_view = config_view_factory
+
+    Extension:
+        id = 'drivers'
+        point = DEVICE_DRIVER_POINT
+
+        DeviceDriver:
+            manufacturer = 'Monoprice'
+            model = 'MakerCraft'
+            #: The width is editable because the rebranded SKYCUT machines in
+            #: this family are sold as 12", 16" and 24" (and the carriage needs
+            #: room at the right), so a hard-coded width would be wrong for most
+            #: of them. 30cm is the 12" class.
+            custom = True
+            width = '30cm'
+            #: HPGL is what these controllers speak. Absolute moves only: the
+            #: firmware ignores relative moves.
+            protocols = ['hpgl']
+            #: Restrict the transport list to the one that can reach the device.
+            connections = ['usbprint']
