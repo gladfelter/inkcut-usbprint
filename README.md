@@ -93,6 +93,12 @@ place and orientation.
 
 - **Absolute moves only.** `PR` (relative) is accepted by the device and does
   nothing; the job must use `PU`/`PD`.
+- **No whitespace after the command letter.** The firmware silently drops any
+  command with a space after the letter: `PU2000,0;` executes, `PU 2000,0;`
+  moves nothing. Verified by A/B on hardware (2026-11-25). InkCut's HPGL
+  protocol emits no space, so jobs through the app are unaffected; this only
+  bites raw or hand-written writers. `tools/pen_test.py` is the reference
+  raw stream.
 - **No homing and no limit switches** on this machine family. The origin is
   wherever the operator parks the head, and it survives only as long as the head
   is not moved and the machine is not power-cycled.
